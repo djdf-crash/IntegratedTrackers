@@ -20,6 +20,8 @@ object AppConstants {
     const val BASE_URL: String = "http://www.integratedtrackers.com/GPSTrack"
     const val LOGIN_URL: String = "$BASE_URL/api/login?user_name=&password"
 
-    const val SHARED_COOKIES: String = "cookies"
+    const val SHARED_NAME: String = "app_shared"
+    const val SHARED_USER: String = "user_name"
+    const val SHARED_PASSWORD: String = "password"
 
 }

@@ -1,28 +1,45 @@
 package com.spybike.integratedtrackers.views
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import com.google.android.material.navigation.NavigationView
+import com.spybike.integratedtrackers.App
 import com.spybike.integratedtrackers.R
+import com.spybike.integratedtrackers.utils.AppConstants
 import com.spybike.integratedtrackers.views.fragments.MapFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
-import permissions.dispatcher.NeedsPermission
-import permissions.dispatcher.PermissionRequest
-import permissions.dispatcher.RuntimePermissions
 
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
+    lateinit var mAccountMenu: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        initView(savedInstanceState)
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (application as App).getSharedPref().registerOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (application as App).getSharedPref().unregisterOnSharedPreferenceChangeListener(this)
+    }
+
+    private fun initView(savedInstanceState: Bundle?) {
 
         setSupportActionBar(toolbar)
 
@@ -35,8 +52,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
-        nav_view.setCheckedItem(R.id.nav_home)
-        if (savedInstanceState == null){
+
+        if (savedInstanceState == null) {
+            nav_view.setCheckedItem(R.id.nav_home)
             showGoogleMap()
         }
     }
@@ -51,15 +69,34 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
+        mAccountMenu = menu.findItem(R.id.action_menu_settings)
+        if ((application as App).getSharedPref().getString(AppConstants.SHARED_NAME, "") == ""){
+            mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action)
+        }else{
+            mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
+        }
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_menu_settings ->
+                if ((application as App).getSharedPref().getString(AppConstants.SHARED_NAME, "") == "") {
+                    showLoginDialog()
+                }else{
+                    logOut()
+                }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun logOut(): Boolean {
+        return (application as App).getSharedPref().edit().putString(AppConstants.SHARED_NAME, "").commit()
+    }
+
+    private fun showLoginDialog(): Boolean {
+        return (application as App).getSharedPref().edit().putString(AppConstants.SHARED_NAME, "asteryx").commit()
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -85,6 +122,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+    override fun onSharedPreferenceChanged(sh: SharedPreferences?, key: String?) {
+        if (key == AppConstants.SHARED_NAME){
+            if (sh?.getString(key,"") == "") {
+                mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action)
+                sh.edit().putString(AppConstants.SHARED_PASSWORD, "").apply()
+            }else{
+                mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
+            }
+        }
+    }
 
     private fun showGoogleMap() {
         supportFragmentManager
