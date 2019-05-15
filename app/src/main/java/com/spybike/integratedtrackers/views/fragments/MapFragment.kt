@@ -72,9 +72,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
     override fun onMapReady(map: GoogleMap) {
 
         mGoogleMap = map
-        mGoogleMap?.uiSettings?.isZoomControlsEnabled = true
         mGoogleMap?.setOnMarkerClickListener(this)
-        mGoogleMap?.mapType = GoogleMap.MAP_TYPE_TERRAIN
+        mGoogleMap?.mapType = GoogleMap.MAP_TYPE_NORMAL
 
         accessFineLocationWithPermissionCheck()
 
@@ -87,7 +86,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
             // position on right bottom
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0)
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
-            layoutParams.setMargins(0, 0, 0, 260)
+            layoutParams.setMargins(0, 0, 30, 30)
         }
 
     }
