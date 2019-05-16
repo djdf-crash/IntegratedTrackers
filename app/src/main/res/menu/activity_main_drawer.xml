@@ -20,16 +20,17 @@
                 android:id="@+id/nav_velocity"
                 android:icon="@drawable/ic_menu_velocity"
                 android:title="@string/menu_velocity"/>
-
+        <item
+                android:id="@+id/nav_filter"
+                android:icon="@drawable/ic_menu_filter"
+                android:title="@string/menu_filter"/>
     </group>
 
     <item android:title="@string/menu_communicate">
         <menu>
-            <item
-                    android:id="@+id/nav_filter"
-                    android:icon="@drawable/ic_menu_filter"
-                    android:title="@string/menu_filter"/>
+
         </menu>
     </item>
+
 
 </menu>

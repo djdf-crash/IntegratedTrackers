@@ -2,7 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
+        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
         android:layout_height="@dimen/nav_header_height"
         android:background="@drawable/side_nav_bar"
         android:theme="@style/ThemeOverlay.AppCompat.Dark"
@@ -13,20 +13,38 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/nav_header_vertical_spacing"
-            android:text="@string/nav_header_title"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:id="@+id/name_user" app:layout_constraintStart_toStartOf="@+id/balance_user"
-            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toTopOf="@+id/balance_user"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" app:layout_constraintBottom_toTopOf="@+id/balance_user"
+            tools:text="@string/nav_header_title" android:text="Please login"/>
 
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/nav_header_subtitle"
             android:id="@+id/balance_user"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/spinnerDeviceIDs" android:layout_marginBottom="8dp"
+            tools:text="@string/nav_header_subtitle"/>
+    <Spinner
+            android:id="@+id/spinnerDeviceIDs"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:spinnerMode="dropdown"
             app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
-            app:layout_constraintHorizontal_bias="0.19" app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="8dp"/>
+            android:visibility="gone" tools:visibility="visible"
+            app:layout_constraintStart_toEndOf="@+id/textDevices" android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/textDevices"
+            app:layout_constraintTop_toTopOf="@+id/textDevices"/>
+    <TextView
+            android:text="Devices:"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textDevices"
+            app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp" android:visibility="gone"
+            tools:visibility="visible" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

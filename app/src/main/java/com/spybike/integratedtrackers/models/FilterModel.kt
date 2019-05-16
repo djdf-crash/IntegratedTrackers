@@ -2,6 +2,7 @@ package com.spybike.integratedtrackers.models
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.spybike.integratedtrackers.enums.Filter
 import com.spybike.integratedtrackers.utils.AppConstants
@@ -19,7 +20,8 @@ data class FilterModel (
     @ColumnInfo(name = AppConstants.TABLE_FILTER_DATE_TO) var dateTo: Date,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_NUMBER_ROWS) var numberRows: Int,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_NAME_FILTER) var nameFiltered: String,
-    @ColumnInfo(name = AppConstants.TABLE_FILTER_LAST_CHANGE) var lastChange: Date
+    @ColumnInfo(name = AppConstants.TABLE_FILTER_LAST_CHANGE) var lastChange: Date,
+    @Ignore var userDeviceUnitCode: String?
 ) {
-    constructor(): this(null, null, Date(), "", 0, Date(), Date(), 100, "", Date())
+    constructor(): this(null, null, Date(), "", 0, Date(), Date(), 100, "", Date(), null)
 }

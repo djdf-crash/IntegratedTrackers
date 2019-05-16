@@ -18,6 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.Marker
 import com.spybike.integratedtrackers.R
+import com.spybike.integratedtrackers.models.FilterModel
 import com.spybike.integratedtrackers.models.PointMarkerModels
 import com.spybike.integratedtrackers.viewvmodel.MapViewModel
 import permissions.dispatcher.*
@@ -28,6 +29,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
 
     private var mGoogleMap:GoogleMap? = null
     private var mapView: View? = null
+    private var mFilter: FilterModel? = null
 
     companion object {
         fun newInstance() = MapFragment()
@@ -54,19 +56,28 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
 
         viewModel = ViewModelProviders.of(this).get(MapViewModel::class.java)
 
-        viewModel.getFilterLiveData(activity as Context)?.observe(this, Observer {filter ->
-            if (filter != null){
-                viewModel.getDataListFromWeb(filter).observe(this, Observer {listPointMarket ->
-                    if (listPointMarket != null){
-                        addMarkersOnMaps(listPointMarket)
-                    }
-                })
+
+        viewModel.getDataListFromWeb().observe(this, Observer {listPointMarket ->
+            if (listPointMarket != null){
+                addMarkersOnMaps(listPointMarket)
+            }else{
+                mGoogleMap?.clear()
+
             }
         })
+
+        viewModel.getFilterLiveData(activity as Context)?.observe(this, Observer {filter ->
+            mFilter = filter
+            viewModel.updateDataListFromWeb(mFilter)
+        })
+
     }
 
     private fun addMarkersOnMaps(listPointMarket: List<PointMarkerModels>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (listPointMarket.isEmpty()){
+            mGoogleMap?.clear()
+            return
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -89,6 +100,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
             layoutParams.setMargins(0, 0, 30, 30)
         }
 
+    }
+
+    fun updateMarkersGoogleMap(){
+        viewModel.updateDataListFromWeb(mFilter)
     }
 
     @SuppressLint("MissingPermission")

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -14,10 +15,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.navigation.NavigationView
 import com.spybike.integratedtrackers.R
+import com.spybike.integratedtrackers.adapters.DevicesSpinnerAdapter
+import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.utils.AppConstants
 import com.spybike.integratedtrackers.utils.PreferenceHelper
 import com.spybike.integratedtrackers.utils.PreferenceHelper.customPrefs
@@ -25,6 +29,7 @@ import com.spybike.integratedtrackers.views.fragments.MapFragment
 import com.spybike.integratedtrackers.viewvmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.nav_header_main.view.*
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -39,6 +44,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
         initView(savedInstanceState)
+
+        subscribeMainLiveData()
+
+        val userName = customPrefs(this).getString(AppConstants.SHARED_USER, "")
+        val password = customPrefs(this).getString(AppConstants.SHARED_PASSWORD, "")
+        if (userName?.isNotEmpty()!! && password?.isNotEmpty()!!){
+            viewModel.login(userName, password)
+        }
 
     }
 
@@ -68,10 +81,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (savedInstanceState == null) {
             nav_view.setCheckedItem(R.id.nav_home)
-            showGoogleMap()
+            showFragment(MapFragment.newInstance(), "GoogleMap")
         }
 
-        subscribeMainLiveData()
+        val adapter = DevicesSpinnerAdapter(this, R.layout.row, ArrayList<DeviceModel>())
+        nav_view.getHeaderView(0).spinnerDeviceIDs.adapter = adapter
     }
 
     private fun subscribeMainLiveData() {
@@ -86,8 +100,31 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     PreferenceHelper.initCookies(it)
                     customPrefs(this).edit().putString(AppConstants.SHARED_USER, it[AppConstants.SHARED_USER]).apply()
                     customPrefs(this).edit().putString(AppConstants.SHARED_PASSWORD, it[AppConstants.SHARED_PASSWORD]).apply()
-                    showGoogleMap()
+                    viewModel.updateUserInfo()
+                    viewModel.updateDevicesUserInfo()
                 }
+            }
+        })
+
+        viewModel.getUserInfoLiveData().observe(this, Observer {
+            if (it != null){
+                nav_view.getHeaderView(0).name_user.text = "User name: ${it.userName}"
+                nav_view.getHeaderView(0).balance_user.text = "Balance ${it.balance}${it.currency}"
+            }else{
+                nav_view.getHeaderView(0).name_user.text = "Please login"
+                nav_view.getHeaderView(0).balance_user.text = ""
+            }
+        })
+
+        viewModel.getUserDevicesLiveData().observe(this, Observer {
+            if (it != null){
+                nav_view.getHeaderView(0).textDevices.visibility = View.VISIBLE
+                nav_view.getHeaderView(0).spinnerDeviceIDs.visibility = View.VISIBLE
+                (nav_view.getHeaderView(0).spinnerDeviceIDs.adapter as DevicesSpinnerAdapter).setDataList(it)
+            }else{
+                nav_view.getHeaderView(0).textDevices.visibility = View.GONE
+                nav_view.getHeaderView(0).spinnerDeviceIDs.visibility = View.GONE
+                (nav_view.getHeaderView(0).spinnerDeviceIDs.adapter as DevicesSpinnerAdapter).clearDataList()
             }
         })
     }
@@ -125,6 +162,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun logOut(): Boolean {
+        nav_view.getHeaderView(0).textDevices.visibility = View.GONE
+        nav_view.getHeaderView(0).spinnerDeviceIDs.visibility = View.GONE
+        (nav_view.getHeaderView(0).spinnerDeviceIDs.adapter as DevicesSpinnerAdapter).clearDataList()
+        nav_view.getHeaderView(0).name_user.text = "Please login"
+        nav_view.getHeaderView(0).balance_user.text = ""
         return customPrefs(this).edit().putString(AppConstants.SHARED_USER, "").commit()
     }
 
@@ -133,11 +175,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val layout = LinearLayout(applicationContext)
         layout.setPadding(8, 8, 8, 8)
         val params = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        params.setMargins(16, 8, 16, 8)
         layout.layoutParams = params
         layout.orientation = LinearLayout.VERTICAL
         layout.clipToPadding = true
 
-        alert.setTitle("Авторизація")
+        alert.setTitle("LogIn")
         alert.setMessage("Please enter your login and password")
 
         val login = AppCompatEditText(this)
@@ -170,9 +213,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
+        val selectedDevice = (nav_view.getHeaderView(0).spinnerDeviceIDs.adapter as DevicesSpinnerAdapter)
+            .getItem((nav_view.getHeaderView(0).spinnerDeviceIDs.selectedItemPosition)) as DeviceModel?
+        var fragment: Fragment? = null
+        var tag: String? = null
         when (item.itemId) {
             R.id.nav_home -> {
-                showGoogleMap()
+                fragment = MapFragment.newInstance()
+                tag = "GoogleMap"
             }
             R.id.nav_battery -> {
 
@@ -184,8 +232,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.nav_filter -> {
-
+                fragment = MapFragment.newInstance()
+                tag = "Filter"
             }
+        }
+        if (fragment != null) {
+            showFragment(fragment, tag)
         }
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
@@ -202,10 +254,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun showGoogleMap() {
+    private fun showFragment(fragment: Fragment, tag: String?) {
         supportFragmentManager
             .beginTransaction()
-            .replace(R.id.fragment_container, MapFragment.newInstance(), "GoogleMap")
+            .replace(R.id.fragment_container, fragment, tag)
             .commit()
     }
+
 }

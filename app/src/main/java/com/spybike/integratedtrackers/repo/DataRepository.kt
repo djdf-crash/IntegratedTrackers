@@ -1,8 +1,10 @@
 package com.spybike.integratedtrackers.repo
 
 import androidx.lifecycle.MutableLiveData
+import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.models.FilterModel
 import com.spybike.integratedtrackers.models.PointMarkerModels
+import com.spybike.integratedtrackers.models.UserAccountInfoModel
 import com.spybike.integratedtrackers.utils.AppConstants
 import com.spybike.integratedtrackers.utils.PreferenceHelper
 import kotlinx.coroutines.GlobalScope
@@ -18,34 +20,85 @@ class DataRepository {
     fun getListDataByFilter(filter: FilterModel, listPointMarkerLiveData: MutableLiveData<List<PointMarkerModels>>) {
 
         if (PreferenceHelper.cookies == null) {
-            listPointMarkerLiveData.postValue(null)
+            listPointMarkerLiveData.postValue(ArrayList<PointMarkerModels>())
             return
         }
 
-        val url: String = "${AppConstants.BASE_URL}/LocationsList?unit_code=${filter.id}" +
-                "&today=${Calendar.getInstance().time}" +
-                "&date=${filter.date}" +
-                "&num_rows=${filter.numberRows}" +
-                "&date_from=${filter.dateFrom}" +
-                "&date_to=${filter.dateTo}" +
-                "&month=${filter.month}" +
-                "&year=${filter.year}" +
-                "&mode=${filter.selectMode?.name}" +
-                "&func=undefined"
+        GlobalScope.launch {
+            val url: String = "${AppConstants.BASE_URL}/LocationsList?unit_code=${filter.id}" +
+                    "&today=${Calendar.getInstance().time}" +
+                    "&date=${filter.date}" +
+                    "&num_rows=${filter.numberRows}" +
+                    "&date_from=${filter.dateFrom}" +
+                    "&date_to=${filter.dateTo}" +
+                    "&month=${filter.month}" +
+                    "&year=${filter.year}" +
+                    "&mode=${filter.selectMode?.name}" +
+                    "&func=undefined"
 
-        var list = listPointMarkerLiveData.value
-        if (list == null){
-            list = ArrayList<PointMarkerModels>()
+            var list = listPointMarkerLiveData.value
+            if (list == null) {
+                list = ArrayList<PointMarkerModels>()
+            }
+
+            Jsoup.connect(url)
+                .cookies(PreferenceHelper.cookies)
+                .get()
+                .run {
+                    select("tr").forEachIndexed { index, element ->
+                        println("$index. $element")
+                    }
+                }
         }
 
-        Jsoup
-            .connect(url)
-            .cookies(PreferenceHelper.cookies)
-            .get()
-            .run {
-            select("tr").forEachIndexed { index, element ->
-                println("$index. $element")
-            }
+    }
+
+    fun getUserDevices(userDevicesLiveData: MutableLiveData<List<DeviceModel>>) {
+        if (PreferenceHelper.cookies == null) {
+            userDevicesLiveData.postValue(null)
+            return
+        }
+
+        GlobalScope.launch {
+            Jsoup.connect("${AppConstants.BASE_URL}/api/getdevices")
+                .cookies(PreferenceHelper.cookies)
+                .get()
+                .run {
+                    val elements = select("row")
+                    val listDevices: ArrayList<DeviceModel> = ArrayList<DeviceModel>()
+                    elements.forEach {el ->
+                        listDevices.add(DeviceModel(
+                            el.select("id").text(),
+                            el.select("account_id").text(),
+                            el.select("nickname").text(),
+                            el.select("unit_code").text()))
+                    }
+                    userDevicesLiveData.postValue(listDevices)
+                }
+
+        }
+    }
+
+    fun getUserAccountInfo(accountInfo: MutableLiveData<UserAccountInfoModel>){
+        if (PreferenceHelper.cookies == null) {
+            accountInfo.postValue(null)
+            return
+        }
+
+        GlobalScope.launch {
+            Jsoup.connect("${AppConstants.BASE_URL}/api/get_account_balance")
+                .cookies(PreferenceHelper.cookies)
+                .get()
+                .run {
+                    val element = select("row")
+                    if (element.size != 0){
+                        accountInfo.postValue(
+                            UserAccountInfoModel(element.select("user_name").text(),
+                                element.select("balance").text(),
+                                element.select("currency").text()))
+                    }
+                }
+
         }
 
     }

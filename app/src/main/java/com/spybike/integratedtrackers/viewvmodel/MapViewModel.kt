@@ -14,12 +14,20 @@ class MapViewModel : ViewModel() {
     private val repo: DataRepository = DataRepository()
     private var listPointMarkerLiveData: MutableLiveData<List<PointMarkerModels>> = MutableLiveData()
 
+
     fun getFilterLiveData(ctx: Context): LiveData<FilterModel>? {
         return AppDatabase.getAppDataBase(ctx)?.filterDAO()?.getOneFiltered()
     }
 
-    fun getDataListFromWeb(filter: FilterModel): LiveData<List<PointMarkerModels>>{
-        repo.getListDataByFilter(filter, listPointMarkerLiveData)
+    fun getDataListFromWeb() : LiveData<List<PointMarkerModels>>{
         return listPointMarkerLiveData
     }
+
+    fun updateDataListFromWeb(filter: FilterModel?) {
+        if (filter != null) {
+            repo.getListDataByFilter(filter, listPointMarkerLiveData)
+        }
+    }
+
+
 }
