@@ -34,7 +34,7 @@ import kotlinx.android.synthetic.main.nav_header_main.view.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
-    lateinit var mAccountMenu: MenuItem
+    var mAccountMenu: MenuItem? = null
     private lateinit var viewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             showFragment(MapFragment.newInstance(), "GoogleMap")
         }
 
-        val adapter = DevicesSpinnerAdapter(this, R.layout.row, ArrayList<DeviceModel>())
+        val adapter = DevicesSpinnerAdapter(this, R.layout.row, ArrayList())
         nav_view.getHeaderView(0).spinnerDeviceIDs.adapter = adapter
     }
 
@@ -141,9 +141,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         menuInflater.inflate(R.menu.main, menu)
         mAccountMenu = menu.findItem(R.id.action_menu_settings)
         if (customPrefs(this).getString(AppConstants.SHARED_USER, "") == ""){
-            mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
+            mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
         }else{
-            mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_no_login)
+            mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_no_login)
         }
         return true
     }
@@ -246,10 +246,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onSharedPreferenceChanged(sh: SharedPreferences?, key: String?) {
         if (key == AppConstants.SHARED_USER){
             if (sh?.getString(key,"") == "") {
-                mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
+                mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
                 sh.edit().putString(AppConstants.SHARED_PASSWORD, "").apply()
             }else{
-                mAccountMenu.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_no_login)
+                mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_no_login)
             }
         }
     }

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.models.UserAccountInfoModel
 import com.spybike.integratedtrackers.repo.DataRepository
+import kotlinx.coroutines.Job
 
 class MainViewModel : ViewModel() {
 
@@ -13,6 +14,7 @@ class MainViewModel : ViewModel() {
     private var loginLiveData: MutableLiveData<Map<String, String>> = MutableLiveData()
     private var userInfoLiveData: MutableLiveData<UserAccountInfoModel> = MutableLiveData()
     private var userDevicesLiveData: MutableLiveData<List<DeviceModel>> = MutableLiveData()
+    private var jobLogin: Job? = null
 
     fun getUserDevicesLiveData(): LiveData<List<DeviceModel>>{
         return userDevicesLiveData
@@ -35,6 +37,8 @@ class MainViewModel : ViewModel() {
     }
 
     fun login(userName: String, password: String){
-        repo.login(userName, password, loginLiveData)
+        if (jobLogin == null || jobLogin?.isCompleted!!){
+            jobLogin = repo.login(userName, password, loginLiveData)
+        }
     }
 }
