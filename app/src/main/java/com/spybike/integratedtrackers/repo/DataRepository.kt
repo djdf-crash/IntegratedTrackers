@@ -62,12 +62,13 @@ class DataRepository {
         }
 
         GlobalScope.launch {
+            val listDevices: ArrayList<DeviceModel> = ArrayList()
+            listDevices.add(DeviceModel())
             Jsoup.connect("${AppConstants.BASE_URL}/api/getdevices")
                 .cookies(PreferenceHelper.cookies)
                 .get()
                 .run {
                     val elements = select("row")
-                    val listDevices: ArrayList<DeviceModel> = ArrayList()
                     elements.forEach {el ->
                         listDevices.add(DeviceModel(
                             el.select("id").text(),
@@ -75,9 +76,8 @@ class DataRepository {
                             el.select("nickname").text(),
                             el.select("unit_code").text()))
                     }
-                    userDevicesLiveData.postValue(listDevices)
                 }
-
+            userDevicesLiveData.postValue(listDevices)
         }
     }
 

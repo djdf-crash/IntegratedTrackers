@@ -25,6 +25,7 @@ import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.utils.AppConstants
 import com.spybike.integratedtrackers.utils.PreferenceHelper
 import com.spybike.integratedtrackers.utils.PreferenceHelper.customPrefs
+import com.spybike.integratedtrackers.views.fragments.FilterFragment
 import com.spybike.integratedtrackers.views.fragments.MapFragment
 import com.spybike.integratedtrackers.viewvmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
@@ -47,22 +48,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         subscribeMainLiveData()
 
+    }
+
+    override fun onResume() {
+        super.onResume()
         val userName = customPrefs(this).getString(AppConstants.SHARED_USER, "")
         val password = customPrefs(this).getString(AppConstants.SHARED_PASSWORD, "")
         if (userName?.isNotEmpty()!! && password?.isNotEmpty()!!){
             viewModel.login(userName, password)
         }
-
-    }
-
-    override fun onResume() {
-        super.onResume()
         customPrefs(this).registerOnSharedPreferenceChangeListener(this)
     }
 
     override fun onPause() {
         super.onPause()
         customPrefs(this).unregisterOnSharedPreferenceChangeListener(this)
+        PreferenceHelper.initCookies(null)
     }
 
     private fun initView(savedInstanceState: Bundle?) {
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         if (savedInstanceState == null) {
             nav_view.setCheckedItem(R.id.nav_home)
-            showFragment(MapFragment.newInstance(), "GoogleMap")
+            showFragment(MapFragment.newInstance(DeviceModel()), "GoogleMap")
         }
 
         val adapter = DevicesSpinnerAdapter(this, R.layout.row, ArrayList())
@@ -219,7 +220,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var tag: String? = null
         when (item.itemId) {
             R.id.nav_home -> {
-                fragment = MapFragment.newInstance()
+                fragment = MapFragment.newInstance(selectedDevice)
                 tag = "GoogleMap"
             }
             R.id.nav_battery -> {
@@ -232,7 +233,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.nav_filter -> {
-                fragment = MapFragment.newInstance()
+                fragment = FilterFragment.newInstance()
                 tag = "Filter"
             }
         }

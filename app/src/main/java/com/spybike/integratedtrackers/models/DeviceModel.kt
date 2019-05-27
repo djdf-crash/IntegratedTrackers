@@ -1,11 +1,17 @@
 package com.spybike.integratedtrackers.models
 
+import java.io.Serializable
+
+
 data class DeviceModel (
     val id: String,
     val accountID: String,
     val nickName: String,
     val unitCode: String
-)
+) : Serializable
+{
+    constructor(): this("","","","")
+}
 
 //<row>
 //<id>8572</id>

@@ -18,6 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.Marker
 import com.spybike.integratedtrackers.R
+import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.models.FilterModel
 import com.spybike.integratedtrackers.models.PointMarkerModels
 import com.spybike.integratedtrackers.viewvmodel.MapViewModel
@@ -32,7 +33,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
     private var mFilter: FilterModel? = null
 
     companion object {
-        fun newInstance() = MapFragment()
+        fun newInstance(selectDevice: DeviceModel?): MapFragment{
+            val fragment = MapFragment()
+            val args = Bundle()
+            if (selectDevice != null) {
+                args.putSerializable("select_devices", selectDevice)
+            }
+            return fragment
+        }
     }
 
     private lateinit var viewModel: MapViewModel

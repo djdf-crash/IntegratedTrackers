@@ -8,7 +8,7 @@ object PreferenceHelper {
 
     var cookies: Map<String, String>? = null
 
-    fun initCookies(value: Map<String, String>){
+    fun initCookies(value: Map<String, String>?){
         cookies = value
     }
 
