@@ -16,4 +16,12 @@
     <string name="button_allow">Allow</string>
     <string name="button_deny">Denny</string>
     <string name="permission_fine_location_rationale">Fine location permission is needed to show ypur location</string>
+    <string name="enter_the_number_of_records">Enter the number of records</string>
+    <string name="select_the_date_of_the_end_of_the_period">End date</string>
+    <string name="select_the_start_date">Start date</string>
+    <string name="select_the_period">Select the period</string>
+    <string name="choose_a_date">Choose a date</string>
+    <string name="choose_by_date">Choose by date</string>
+    <string name="choose_today">Choose today</string>
+    <string name="select_at_the_last_record">Select at the last records</string>
 </resources>
