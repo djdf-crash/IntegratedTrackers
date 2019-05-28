@@ -21,7 +21,7 @@ import com.spybike.integratedtrackers.R
 import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.models.FilterModel
 import com.spybike.integratedtrackers.models.PointMarkerModels
-import com.spybike.integratedtrackers.viewvmodel.MapViewModel
+import com.spybike.integratedtrackers.viewvmodel.MainViewModel
 import permissions.dispatcher.*
 
 
@@ -31,24 +31,16 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
     private var mGoogleMap:GoogleMap? = null
     private var mapView: View? = null
     private var mFilter: FilterModel? = null
+    private lateinit var viewModel: MainViewModel
+    private var mSelectedDevice: DeviceModel? = null
 
     companion object {
-        fun newInstance(selectDevice: DeviceModel?): MapFragment{
-            val fragment = MapFragment()
-            val args = Bundle()
-            if (selectDevice != null) {
-                args.putSerializable("select_devices", selectDevice)
-            }
-            return fragment
+        fun newInstance(): MapFragment{
+            return MapFragment()
         }
     }
 
-    private lateinit var viewModel: MapViewModel
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
         val rootView = inflater.inflate(R.layout.map_fragment, container, false)
 
@@ -62,7 +54,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel = ViewModelProviders.of(this).get(MapViewModel::class.java)
+        viewModel = activity?.run {
+            ViewModelProviders.of(this).get(MainViewModel::class.java)
+        }?: throw Exception("Invalid Activity")
 
 
         viewModel.getDataListFromWeb().observe(this, Observer {listPointMarket ->
@@ -75,7 +69,13 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         })
 
         viewModel.getFilterLiveData(activity as Context)?.observe(this, Observer {filter ->
-            mFilter = filter
+            mFilter?.selectedDevice = mSelectedDevice
+            viewModel.updateDataListFromWeb(mFilter)
+        })
+
+        viewModel.getSelectDeviceUserLiveData().observe(this, Observer {
+            mSelectedDevice = it
+            mFilter?.selectedDevice = mSelectedDevice
             viewModel.updateDataListFromWeb(mFilter)
         })
 

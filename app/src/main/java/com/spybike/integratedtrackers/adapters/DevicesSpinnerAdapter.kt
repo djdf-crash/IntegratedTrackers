@@ -1,6 +1,7 @@
 package com.spybike.integratedtrackers.adapters
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -46,9 +47,17 @@ class DevicesSpinnerAdapter(ctx: Context, var textViewResourceId: Int, var listD
 
         if (colorRes != null){
             view.setBackgroundResource(colorRes)
+            vh.nickName?.textSize = 20f
         }
 
-        vh.nickName?.text = "${listData[position].nickName}"
+        if (position == 0){
+            vh.nickName?.text = "Select your device"
+            vh.nickName?.setTextColor(Color.GRAY)
+        }else{
+            vh.nickName?.text = listData[position].nickName
+            vh.nickName?.setTextColor(Color.WHITE)
+        }
+
         return view
     }
 

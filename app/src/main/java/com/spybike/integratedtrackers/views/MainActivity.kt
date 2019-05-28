@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -21,7 +22,6 @@ import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.navigation.NavigationView
 import com.spybike.integratedtrackers.R
 import com.spybike.integratedtrackers.adapters.DevicesSpinnerAdapter
-import com.spybike.integratedtrackers.models.DeviceModel
 import com.spybike.integratedtrackers.utils.AppConstants
 import com.spybike.integratedtrackers.utils.PreferenceHelper
 import com.spybike.integratedtrackers.utils.PreferenceHelper.customPrefs
@@ -80,13 +80,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         nav_view.setNavigationItemSelectedListener(this)
 
-        if (savedInstanceState == null) {
-            nav_view.setCheckedItem(R.id.nav_home)
-            showFragment(MapFragment.newInstance(DeviceModel()), "GoogleMap")
-        }
-
         val adapter = DevicesSpinnerAdapter(this, R.layout.row, ArrayList())
         nav_view.getHeaderView(0).spinnerDeviceIDs.adapter = adapter
+        nav_view.getHeaderView(0).spinnerDeviceIDs.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                viewModel.setSelectDeviceUser((parent?.adapter as DevicesSpinnerAdapter).listData[position])
+            }
+        }
+
+        if (savedInstanceState == null) {
+            nav_view.setCheckedItem(R.id.nav_home)
+            showFragment(MapFragment.newInstance(), "GoogleMap")
+        }
     }
 
     private fun subscribeMainLiveData() {
@@ -155,6 +162,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.action_menu_settings ->
                 if (customPrefs(this).getString(AppConstants.SHARED_USER, "") == "") {
                     showLoginDialog()
+                    return true
                 }else{
                     logOut()
                 }
@@ -171,7 +179,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return customPrefs(this).edit().putString(AppConstants.SHARED_USER, "").commit()
     }
 
-    private fun showLoginDialog(): Boolean {
+    private fun showLoginDialog() {
         val alert = AlertDialog.Builder(this)
         val layout = LinearLayout(applicationContext)
         layout.setPadding(8, 8, 8, 8)
@@ -200,27 +208,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         alert.setPositiveButton("Ok") { _, _ ->
             // Do something with value!
-            //if (login.text.toString().isNotEmpty() && password.text.toString().isNotEmpty()) {
-                viewModel.login("asteryx", "xyretsa1")
-            //}
+            if (login.text.toString().isNotEmpty() && password.text.toString().isNotEmpty()) {
+                viewModel.login(login.text.toString(), password.text.toString())
+            }
         }
 
         alert.setNegativeButton("Cancel", { _, _ ->
             // Canceled.
         })
         alert.show()
-        return customPrefs(this).edit().putString(AppConstants.SHARED_NAME, "asteryx").commit()
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Handle navigation view item clicks here.
-        val selectedDevice = (nav_view.getHeaderView(0).spinnerDeviceIDs.adapter as DevicesSpinnerAdapter)
-            .getItem((nav_view.getHeaderView(0).spinnerDeviceIDs.selectedItemPosition)) as DeviceModel?
         var fragment: Fragment? = null
         var tag: String? = null
         when (item.itemId) {
             R.id.nav_home -> {
-                fragment = MapFragment.newInstance(selectedDevice)
+                fragment = MapFragment.newInstance()
                 tag = "GoogleMap"
             }
             R.id.nav_battery -> {

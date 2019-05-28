@@ -1,9 +1,13 @@
 package com.spybike.integratedtrackers.viewvmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.spybike.integratedtrackers.database.AppDatabase
 import com.spybike.integratedtrackers.models.DeviceModel
+import com.spybike.integratedtrackers.models.FilterModel
+import com.spybike.integratedtrackers.models.PointMarkerModels
 import com.spybike.integratedtrackers.models.UserAccountInfoModel
 import com.spybike.integratedtrackers.repo.DataRepository
 import kotlinx.coroutines.Job
@@ -14,6 +18,9 @@ class MainViewModel : ViewModel() {
     private var loginLiveData: MutableLiveData<Map<String, String>> = MutableLiveData()
     private var userInfoLiveData: MutableLiveData<UserAccountInfoModel> = MutableLiveData()
     private var userDevicesLiveData: MutableLiveData<List<DeviceModel>> = MutableLiveData()
+    private var listPointMarkerLiveData: MutableLiveData<List<PointMarkerModels>> = MutableLiveData()
+    private var selectDeviceLiveData: MutableLiveData<DeviceModel> = MutableLiveData()
+
     private var jobLogin: Job? = null
 
     fun getUserDevicesLiveData(): LiveData<List<DeviceModel>>{
@@ -40,5 +47,27 @@ class MainViewModel : ViewModel() {
         if (jobLogin == null || jobLogin?.isCompleted!!){
             jobLogin = repo.login(userName, password, loginLiveData)
         }
+    }
+
+    fun getFilterLiveData(ctx: Context): LiveData<FilterModel>? {
+        return AppDatabase.getAppDataBase(ctx)?.filterDAO()?.getOneFiltered()
+    }
+
+    fun getDataListFromWeb() : LiveData<List<PointMarkerModels>>{
+        return listPointMarkerLiveData
+    }
+
+    fun updateDataListFromWeb(filter: FilterModel?) {
+        if (filter != null) {
+            repo.getListDataByFilter(filter, listPointMarkerLiveData)
+        }
+    }
+
+    fun setSelectDeviceUser(selectDevice: DeviceModel){
+        selectDeviceLiveData.postValue(selectDevice)
+    }
+
+    fun getSelectDeviceUserLiveData(): LiveData<DeviceModel>{
+        return selectDeviceLiveData
     }
 }

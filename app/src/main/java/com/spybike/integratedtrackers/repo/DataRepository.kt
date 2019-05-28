@@ -27,30 +27,32 @@ class DataRepository {
         }
 
         GlobalScope.launch {
-            val url: String = "${AppConstants.BASE_URL}/LocationsList?unit_code=${filter.id}" +
-                    "&today=${Calendar.getInstance().time}" +
-                    "&date=${filter.date}" +
-                    "&num_rows=${filter.numberRows}" +
-                    "&date_from=${filter.dateFrom}" +
-                    "&date_to=${filter.dateTo}" +
-                    "&month=${filter.month}" +
-                    "&year=${filter.year}" +
-                    "&mode=${filter.selectMode?.name}" +
-                    "&func=undefined"
+            if (ConnectionDetector.isConnectingToInternet() && filter.selectedDevice != null) {
+                val url: String = "${AppConstants.BASE_URL}/LocationsList?unit_code=${filter.selectedDevice?.unitCode}" +
+                        "&today=${Calendar.getInstance().time}" +
+                        "&date=${filter.date}" +
+                        "&num_rows=${filter.numberRows}" +
+                        "&date_from=${filter.dateFrom}" +
+                        "&date_to=${filter.dateTo}" +
+                        "&month=${filter.month}" +
+                        "&year=${filter.year}" +
+                        "&mode=${filter.selectMode?.name}" +
+                        "&func=undefined"
 
-            var list = listPointMarkerLiveData.value
-            if (list == null) {
-                list = ArrayList()
-            }
-
-            Jsoup.connect(url)
-                .cookies(PreferenceHelper.cookies)
-                .get()
-                .run {
-                    select("tr").forEachIndexed { index, element ->
-                        println("$index. $element")
-                    }
+                var list = listPointMarkerLiveData.value
+                if (list == null) {
+                    list = ArrayList()
                 }
+
+                Jsoup.connect(url)
+                    .cookies(PreferenceHelper.cookies)
+                    .get()
+                    .run {
+                        select("tr").forEachIndexed { index, element ->
+                            println("$index. $element")
+                        }
+                    }
+            }
         }
 
     }
@@ -64,19 +66,24 @@ class DataRepository {
         GlobalScope.launch {
             val listDevices: ArrayList<DeviceModel> = ArrayList()
             listDevices.add(DeviceModel())
-            Jsoup.connect("${AppConstants.BASE_URL}/api/getdevices")
-                .cookies(PreferenceHelper.cookies)
-                .get()
-                .run {
-                    val elements = select("row")
-                    elements.forEach {el ->
-                        listDevices.add(DeviceModel(
-                            el.select("id").text(),
-                            el.select("account_id").text(),
-                            el.select("nickname").text(),
-                            el.select("unit_code").text()))
+            if (ConnectionDetector.isConnectingToInternet()) {
+                Jsoup.connect("${AppConstants.BASE_URL}/api/getdevices")
+                    .cookies(PreferenceHelper.cookies)
+                    .get()
+                    .run {
+                        val elements = select("row")
+                        elements.forEach { el ->
+                            listDevices.add(
+                                DeviceModel(
+                                    el.select("id").text(),
+                                    el.select("account_id").text(),
+                                    el.select("nickname").text(),
+                                    el.select("unit_code").text()
+                                )
+                            )
+                        }
                     }
-                }
+            }
             userDevicesLiveData.postValue(listDevices)
         }
     }

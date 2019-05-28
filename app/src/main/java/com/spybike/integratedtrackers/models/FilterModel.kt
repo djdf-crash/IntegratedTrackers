@@ -21,7 +21,7 @@ data class FilterModel (
     @ColumnInfo(name = AppConstants.TABLE_FILTER_NUMBER_ROWS) var numberRows: Int,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_NAME_FILTER) var nameFiltered: String,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_LAST_CHANGE) var lastChange: Date,
-    @Ignore var userDeviceUnitCode: String?
+    @Ignore var selectedDevice: DeviceModel?
 ) {
     constructor(): this(null, null, Date(), "", 0, Date(), Date(), 100, "", Date(), null)
 }
