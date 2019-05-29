@@ -4,6 +4,6 @@ enum class Filter(val mode: String) {
     MOST_RECENT("recent"),
     TODAY("today"),
     DATE("date"),
-    MONTH("month"),
+//    MONTH("month"),
     BETWEEN("daterange")
 }
