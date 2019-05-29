@@ -69,6 +69,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         })
 
         viewModel.getFilterLiveData(activity as Context)?.observe(this, Observer {filter ->
+            mFilter = filter
             mFilter?.selectedDevice = mSelectedDevice
             viewModel.updateDataListFromWeb(mFilter)
         })

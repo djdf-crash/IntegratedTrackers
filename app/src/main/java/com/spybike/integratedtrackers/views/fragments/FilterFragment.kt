@@ -118,21 +118,24 @@ class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                     datePicker.show()
                 }
             }
-            if (mSelectFilter == null){
-                mSelectFilter = FilterModel()
-            }
-            mSelectFilter?.selectMode = mode
-            if (numberTracks.text.isEmpty()){
-                mSelectFilter?.numberRows = 50
-            }else{
-                mSelectFilter?.numberRows = numberTracks.text.toString().toInt()
-            }
-            mSelectFilter?.dateFrom = inputBetweenIn.text.toString()
-            mSelectFilter?.dateTo = inputBetweenOut.text.toString()
-            mSelectFilter?.date = inputDate.text.toString()
-            mSelectFilter?.lastChange = dateToday
-            mSelectFilter?.nameFiltered = "${mode.name} $dateToday"
+            updateFilter(mode)
         }
+    }
+
+    private fun updateFilter(mode: Filter) {
+        if (mSelectFilter == null) {
+            mSelectFilter = FilterModel()
+        }
+        mSelectFilter?.selectMode = mode
+        if (numberTracks.text.isNotEmpty()) {
+            mSelectFilter?.numberRows = numberTracks.text.toString()
+        }
+        mSelectFilter?.dateFrom = inputBetweenIn.text.toString()
+        mSelectFilter?.dateTo = inputBetweenOut.text.toString()
+        mSelectFilter?.date = inputDate.text.toString()
+        mSelectFilter?.lastChange = dateToday
+        mSelectFilter?.nameFiltered = "${mode.name} $dateToday"
+        viewModel.applyFilter(this.context, mSelectFilter!!)
     }
 
     private fun subscribeViewModel() {
@@ -149,6 +152,12 @@ class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
                     Filter.BETWEEN ->
                         chkBetween.isChecked = true
                 }
+                inputBetweenIn.setText(mSelectFilter?.dateFrom)
+                inputBetweenOut.setText(mSelectFilter?.dateTo)
+                inputDate.setText(mSelectFilter?.date)
+                numberTracks.setText(mSelectFilter?.numberRows)
+            }else{
+                numberTracks.setText("50")
             }
         })
     }

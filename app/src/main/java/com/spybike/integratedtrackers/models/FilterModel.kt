@@ -18,10 +18,10 @@ data class FilterModel (
     @ColumnInfo(name = AppConstants.TABLE_FILTER_MONTH) var month: Int,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_DATE_FROM) var dateFrom: String,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_DATE_TO) var dateTo: String,
-    @ColumnInfo(name = AppConstants.TABLE_FILTER_NUMBER_ROWS) var numberRows: Int,
+    @ColumnInfo(name = AppConstants.TABLE_FILTER_NUMBER_ROWS) var numberRows: String,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_NAME_FILTER) var nameFiltered: String,
     @ColumnInfo(name = AppConstants.TABLE_FILTER_LAST_CHANGE) var lastChange: Date,
     @Ignore var selectedDevice: DeviceModel?
 ) {
-    constructor(): this(null, null, "", "", 0, "", "", 100, "", Date(), null)
+    constructor(): this(null, null, "", "", 0, "", "", "50", "", Date(), null)
 }

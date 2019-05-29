@@ -70,4 +70,10 @@ class MainViewModel : ViewModel() {
     fun getSelectDeviceUserLiveData(): LiveData<DeviceModel>{
         return selectDeviceLiveData
     }
+
+    fun applyFilter(ctx: Context?, selectFilter: FilterModel) {
+        if (ctx != null) {
+            AppDatabase.getAppDataBase(ctx)?.applyFilterDatabase(selectFilter)
+        }
+    }
 }
