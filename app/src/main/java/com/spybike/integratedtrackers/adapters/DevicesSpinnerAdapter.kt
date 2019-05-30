@@ -50,13 +50,8 @@ class DevicesSpinnerAdapter(ctx: Context, var textViewResourceId: Int, var listD
             vh.nickName?.textSize = 20f
         }
 
-        if (position == 0){
-            vh.nickName?.text = "Select your device"
-            vh.nickName?.setTextColor(Color.GRAY)
-        }else{
-            vh.nickName?.text = listData[position].nickName
-            vh.nickName?.setTextColor(Color.WHITE)
-        }
+        vh.nickName?.text = listData[position].nickName
+        vh.nickName?.setTextColor(Color.WHITE)
 
         return view
     }

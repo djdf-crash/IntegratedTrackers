@@ -10,4 +10,5 @@ data class PointMarkerModels (
     var latLng: LatLng,
     var reason: String
 ) {
+    constructor(): this("", Date(), "", LatLng(0.0,0.0), "")
 }

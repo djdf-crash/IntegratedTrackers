@@ -18,7 +18,7 @@ class MainViewModel : ViewModel() {
     private var loginLiveData: MutableLiveData<Map<String, String>> = MutableLiveData()
     private var userInfoLiveData: MutableLiveData<UserAccountInfoModel> = MutableLiveData()
     private var userDevicesLiveData: MutableLiveData<List<DeviceModel>> = MutableLiveData()
-    private var listPointMarkerLiveData: MutableLiveData<List<PointMarkerModels>> = MutableLiveData()
+    private var listPointMarkerLiveData: MutableLiveData<ArrayList<PointMarkerModels>> = MutableLiveData()
     private var selectDeviceLiveData: MutableLiveData<DeviceModel> = MutableLiveData()
 
     private var jobLogin: Job? = null
@@ -53,7 +53,7 @@ class MainViewModel : ViewModel() {
         return AppDatabase.getAppDataBase(ctx)?.filterDAO()?.getOneFiltered()
     }
 
-    fun getDataListFromWeb() : LiveData<List<PointMarkerModels>>{
+    fun getDataListFromWeb() : LiveData<ArrayList<PointMarkerModels>>{
         return listPointMarkerLiveData
     }
 

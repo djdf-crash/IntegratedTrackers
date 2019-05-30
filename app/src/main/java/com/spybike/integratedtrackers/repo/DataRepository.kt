@@ -13,13 +13,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jsoup.Connection
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class DataRepository {
 
-    fun getListDataByFilter(filter: FilterModel, listPointMarkerLiveData: MutableLiveData<List<PointMarkerModels>>) {
+    fun getListDataByFilter(filter: FilterModel, listPointMarkerLiveData: MutableLiveData<ArrayList<PointMarkerModels>>) {
 
         if (PreferenceHelper.cookies == null) {
             listPointMarkerLiveData.postValue(ArrayList())
@@ -28,18 +30,21 @@ class DataRepository {
 
         GlobalScope.launch {
             if (ConnectionDetector.isConnectingToInternet() && filter.selectedDevice != null) {
+                val today = SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().time)
                 val url: String = "${AppConstants.BASE_URL}/LocationsList?unit_code=${filter.selectedDevice?.unitCode}" +
-                        "&today=${Calendar.getInstance().time}" +
+                        "&today=$today" +
                         "&date=${filter.date}" +
                         "&num_rows=${filter.numberRows}" +
-                        "&date_from=${filter.dateFrom}" +
-                        "&date_to=${filter.dateTo}" +
-                        "&month=${filter.month}" +
-                        "&year=${filter.year}" +
-                        "&mode=${filter.selectMode?.name}" +
+                        "&date_from=${filter.dateFrom}%2000:00" +
+                        "&date_to=${filter.dateTo}%2023:59" +
+//                        "&month=${filter.month}" +
+                        "&month=0" +
+                        "&year=2019" +
+//                        "&year=${filter.year}" +
+                        "&mode=${filter.selectMode?.mode}" +
                         "&func=undefined"
 
-                var list = listPointMarkerLiveData.value
+                var list: ArrayList<PointMarkerModels>? = listPointMarkerLiveData.value
                 if (list == null) {
                     list = ArrayList()
                 }
@@ -49,13 +54,41 @@ class DataRepository {
                     .get()
                     .run {
                         select("tr").forEachIndexed { index, element ->
-                            println("$index. $element")
+                            if (index > 0) {
+                                val listTdElements = element.select("td")
+                                if (listTdElements.size >= 7) {
+                                    val id = (listTdElements[6].childNode(0) as Element).attr("onClick").substringAfter("(").substringBefore(")")
+//                                    list.add(PointMarkerModels(id, LocalDate.parse(listTdElements[0].text()),listTdElements[1].text(), LatLng()))
+                                }
+                            }
                         }
                     }
+                listPointMarkerLiveData.postValue(list)
             }
         }
 
     }
+
+//    <tr style="background-color:whitesmoke">
+//    <td>2019-03-17</td>
+//    <td>18:57:07.0</td>
+//    <td>+50 25.3896</td>
+//    <td>+030 23.3610</td>
+//    <td>VIB_PERIOD</td>
+//    <td><a target="blank" href="
+//    http://maps.google.co.uk/maps?q=+50 25.3896,+030 23.3610"> Show On Map </a></td>
+//    <td align="center" style="cursor:pointer"><img src="images/mag.gif" onclick="PopUpExtended(2322169)"><img src="images/delete.bmp" onclick="DeleteLocation(2322169)"></td>
+//    </tr>
+
+//    <tr style="background-color: silver;width: 100%; font-weight : bold">
+//    <td>Date</td>
+//    <td>Time</td>
+//    <td>Latitude</td>
+//    <td>Longitude</td>
+//    <td>Reason</td>
+//    <td>Google Maps</td>
+//    <td>Extra</td>
+//    </tr>
 
     fun getUserDevices(userDevicesLiveData: MutableLiveData<List<DeviceModel>>) {
         if (PreferenceHelper.cookies == null) {
@@ -65,7 +98,6 @@ class DataRepository {
 
         GlobalScope.launch {
             val listDevices: ArrayList<DeviceModel> = ArrayList()
-            listDevices.add(DeviceModel())
             if (ConnectionDetector.isConnectingToInternet()) {
                 Jsoup.connect("${AppConstants.BASE_URL}/api/getdevices")
                     .cookies(PreferenceHelper.cookies)

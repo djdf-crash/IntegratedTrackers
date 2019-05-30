@@ -15,18 +15,17 @@ import com.spybike.integratedtrackers.models.FilterModel
 import com.spybike.integratedtrackers.viewvmodel.MainViewModel
 import kotlinx.android.synthetic.main.filter_fragment.*
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.*
 
 
-class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
+class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
     companion object {
         fun newInstance() = FilterFragment()
     }
 
-    private var day: Int = 0
-    private var month: Int = 0
-    private var year: Int = 0
+    private var selectedMode = Filter.MOST_RECENT
     private var mSelectFilter: FilterModel? = null
     private val calendar = Calendar.getInstance()
     private val dateToday = calendar.time
@@ -53,17 +52,21 @@ class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         return inflater.inflate(R.layout.filter_fragment, container, false)
     }
 
+    override fun onPause() {
+        super.onPause()
+        updateFilter(selectedMode)
+    }
+
     private fun initViews() {
         chkMostRecent.setOnCheckedChangeListener(this)
         chkDate.setOnCheckedChangeListener(this)
         chkToday.setOnCheckedChangeListener(this)
         chkBetween.setOnCheckedChangeListener(this)
 
-        day = calendar.get(Calendar.DAY_OF_MONTH)
-        month = calendar.get(Calendar.MONTH)
-        year = calendar.get(Calendar.YEAR)
-
         inputToday.text = dateTodayStr
+        inputDate.setOnClickListener(this)
+        inputBetweenIn.setOnClickListener(this)
+        inputBetweenOut.setOnClickListener(this)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -77,49 +80,101 @@ class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
         subscribeViewModel()
     }
 
+    override fun onClick(p0: View?) {
+        when(p0?.id){
+            R.id.inputDate -> {
+                showDatePicker(
+                    this.context,
+                    datePickerListener,
+                    "Select the date",
+                    inputDate.text.toString()
+                )
+                chkDate.isChecked = true
+            }
+            R.id.inputBetweenIn -> {
+                showDatePicker(
+                    this.context,
+                    dateInPickerListener,
+                    "Select the start date",
+                    inputBetweenIn.text.toString()
+                )
+                chkBetween.isChecked = true
+            }
+            R.id.inputBetweenOut -> {
+                showDatePicker(
+                    this.context,
+                    dateOutPickerListener,
+                    "Select the end date",
+                    inputBetweenOut.text.toString()
+                )
+                chkBetween.isChecked = true
+            }
+        }
+    }
+
     override fun onCheckedChanged(v: CompoundButton?, check: Boolean) {
         if (check){
-            var mode = Filter.MOST_RECENT
             when(v?.id){
                 R.id.chkMostRecent -> {
                     chkDate.isChecked = false
                     chkToday.isChecked = false
                     chkBetween.isChecked = false
-                    mode = Filter.MOST_RECENT
+                    selectedMode = Filter.MOST_RECENT
                 }
                 R.id.chkToday -> {
                     chkMostRecent.isChecked = false
                     chkDate.isChecked = false
                     chkBetween.isChecked = false
-                    mode = Filter.TODAY
+                    selectedMode = Filter.TODAY
                 }
                 R.id.chkDate -> {
                     chkMostRecent.isChecked = false
                     chkToday.isChecked = false
                     chkBetween.isChecked = false
-                    mode = Filter.DATE
-                    val datePicker = DatePickerDialog(this.context, datePickerListener, year, month, day)
-                    datePicker.setCancelable(false)
-                    datePicker.setTitle("Select the date")
-                    datePicker.show()
+                    selectedMode = Filter.DATE
+                    if (inputDate.text.isEmpty()){
+                        showDatePicker(this.context, datePickerListener,"Select the date")
+                    }
                 }
                 R.id.chkBetween -> {
                     chkMostRecent.isChecked = false
                     chkToday.isChecked = false
                     chkDate.isChecked = false
-                    mode = Filter.BETWEEN
-                    var datePicker = DatePickerDialog(this.context, dateInPickerListener, year, month, day)
-                    datePicker.setCancelable(false)
-                    datePicker.setTitle("Select the start date")
-                    datePicker.show()
-                    datePicker = DatePickerDialog(this.context, dateOutPickerListener, year, month, day)
-                    datePicker.setCancelable(false)
-                    datePicker.setTitle("Select the end date")
-                    datePicker.show()
+                    selectedMode = Filter.BETWEEN
+
+                    if (inputBetweenIn.text.isEmpty()) {
+                        showDatePicker(this.context, dateInPickerListener,"Select the start date")
+                    }
+
+                    if (inputBetweenOut.text.isEmpty()) {
+                        showDatePicker(this.context, dateOutPickerListener,"Select the end date")
+                    }
                 }
             }
-            updateFilter(mode)
         }
+    }
+
+    private fun showDatePicker(ctx: Context?, listener: DatePickerDialog.OnDateSetListener, title: String, value: String = "") {
+
+        val day: Int
+        val month: Int
+        val year: Int
+
+        if (value.isEmpty()) {
+            day = calendar.get(Calendar.DAY_OF_MONTH)
+            month = calendar.get(Calendar.MONTH)
+            year = calendar.get(Calendar.YEAR)
+        }else{
+            val dateValue = LocalDate.parse(value)
+            day = dateValue.dayOfMonth
+            month = dateValue.monthValue - 1
+            year = dateValue.year
+        }
+
+        val datePicker = DatePickerDialog(ctx!!, listener, year, month, day)
+        datePicker.setCancelable(false)
+        datePicker.setTitle(title)
+        datePicker.show()
     }
 
     private fun updateFilter(mode: Filter) {
@@ -141,25 +196,41 @@ class FilterFragment : Fragment(), CompoundButton.OnCheckedChangeListener {
     private fun subscribeViewModel() {
         viewModel.getFilterLiveData(activity as Context)?.observe(this, androidx.lifecycle.Observer {
             if (it != null){
-                mSelectFilter = it
-                when (it.selectMode){
-                    Filter.MOST_RECENT ->
-                        chkMostRecent.isChecked = true
-                    Filter.DATE ->
-                        chkDate.isChecked = true
-                    Filter.TODAY ->
-                        chkToday.isChecked = true
-                    Filter.BETWEEN ->
-                        chkBetween.isChecked = true
+                if (it.id != mSelectFilter?.id) {
+                    mSelectFilter = it
+                    initFilter()
                 }
-                inputBetweenIn.setText(mSelectFilter?.dateFrom)
-                inputBetweenOut.setText(mSelectFilter?.dateTo)
-                inputDate.setText(mSelectFilter?.date)
-                numberTracks.setText(mSelectFilter?.numberRows)
             }else{
-                numberTracks.setText("50")
+                mSelectFilter = FilterModel()
+                mSelectFilter?.selectMode = Filter.MOST_RECENT
+                mSelectFilter?.numberRows = "50"
+                mSelectFilter?.dateFrom = dateTodayStr
+                mSelectFilter?.dateTo = dateTodayStr
+                mSelectFilter?.date = dateTodayStr
+                mSelectFilter?.lastChange = dateToday
+                mSelectFilter?.nameFiltered = "${Filter.MOST_RECENT.name} $dateToday"
+                initFilter()
             }
         })
+    }
+
+    private fun initFilter() {
+
+        inputBetweenIn.setText(mSelectFilter?.dateFrom)
+        inputBetweenOut.setText(mSelectFilter?.dateTo)
+        inputDate.setText(mSelectFilter?.date)
+        numberTracks.setText(mSelectFilter?.numberRows)
+
+        when (mSelectFilter?.selectMode) {
+            Filter.MOST_RECENT ->
+                chkMostRecent.isChecked = true
+            Filter.DATE ->
+                chkDate.isChecked = true
+            Filter.TODAY ->
+                chkToday.isChecked = true
+            Filter.BETWEEN ->
+                chkBetween.isChecked = true
+        }
     }
 
 }
