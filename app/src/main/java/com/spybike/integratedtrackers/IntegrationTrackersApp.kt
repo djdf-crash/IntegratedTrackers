@@ -1,12 +1,14 @@
 package com.spybike.integratedtrackers
 
 import android.app.Application
-import com.spybike.integratedtrackers.utils.ConnectionDetector
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.spybike.integratedtrackers.utils.Connections
 
 class IntegrationTrackersApp: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        ConnectionDetector.context = this
+        Connections.context = this
+        Fresco.initialize(this)
     }
 }

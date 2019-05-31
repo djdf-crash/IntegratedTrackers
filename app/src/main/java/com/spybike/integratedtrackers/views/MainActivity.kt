@@ -22,10 +22,12 @@ import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.navigation.NavigationView
 import com.spybike.integratedtrackers.R
 import com.spybike.integratedtrackers.adapters.DevicesSpinnerAdapter
+import com.spybike.integratedtrackers.enums.TagsFragment
 import com.spybike.integratedtrackers.utils.AppConstants
 import com.spybike.integratedtrackers.utils.PreferenceHelper
 import com.spybike.integratedtrackers.utils.PreferenceHelper.customPrefs
 import com.spybike.integratedtrackers.views.fragments.FilterFragment
+import com.spybike.integratedtrackers.views.fragments.ImageFragment
 import com.spybike.integratedtrackers.views.fragments.MapFragment
 import com.spybike.integratedtrackers.viewvmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
@@ -52,18 +54,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onResume() {
         super.onResume()
-        val userName = customPrefs(this).getString(AppConstants.SHARED_USER, "")
-        val password = customPrefs(this).getString(AppConstants.SHARED_PASSWORD, "")
-        if (userName?.isNotEmpty()!! && password?.isNotEmpty()!!){
-            viewModel.login(userName, password)
-        }
         customPrefs(this).registerOnSharedPreferenceChangeListener(this)
+        val cookie = customPrefs(this).getString(AppConstants.SHARED_COOKIES, "")!!
+        if (cookie.isNotEmpty()){
+            val mapCookies = HashMap<String, String>()
+            mapCookies["JSESSIONID"] = cookie
+            PreferenceHelper.initCookies(this, mapCookies)
+            viewModel.updateUserInfo()
+            viewModel.updateDevicesUserInfo()
+        }
     }
 
     override fun onPause() {
         super.onPause()
         customPrefs(this).unregisterOnSharedPreferenceChangeListener(this)
-        PreferenceHelper.initCookies(null)
+//        PreferenceHelper.initCookies(this,null)
     }
 
     private fun initView(savedInstanceState: Bundle?) {
@@ -105,9 +110,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     Toast.makeText(this, it["error"], Toast.LENGTH_LONG).show()
                     logOut()
                 }else{
-                    PreferenceHelper.initCookies(it)
-                    customPrefs(this).edit().putString(AppConstants.SHARED_USER, it[AppConstants.SHARED_USER]).apply()
-                    customPrefs(this).edit().putString(AppConstants.SHARED_PASSWORD, it[AppConstants.SHARED_PASSWORD]).apply()
+                    PreferenceHelper.initCookies(this, it)
                     viewModel.updateUserInfo()
                     viewModel.updateDevicesUserInfo()
                 }
@@ -141,14 +144,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
             drawer_layout.closeDrawer(GravityCompat.START)
         } else {
-            super.onBackPressed()
+            val alertDialogBuilder = AlertDialog.Builder(this)
+            alertDialogBuilder.setMessage("Do you want to exit the application?")
+            alertDialogBuilder.setPositiveButton("Yes"
+            ) { _, _ -> this@MainActivity.finish() }
+            alertDialogBuilder.setNegativeButton("No"
+            ) { dialog, _ -> dialog.cancel() }
+            alertDialogBuilder.create().show()
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
         mAccountMenu = menu.findItem(R.id.action_menu_settings)
-        if (customPrefs(this).getString(AppConstants.SHARED_USER, "") == ""){
+        if (customPrefs(this).getString(AppConstants.SHARED_COOKIES, "") == ""){
             mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
         }else{
             mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_no_login)
@@ -160,7 +169,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         return when (item.itemId) {
             R.id.action_menu_settings ->
-                if (customPrefs(this).getString(AppConstants.SHARED_USER, "") == "") {
+                if (customPrefs(this).getString(AppConstants.SHARED_COOKIES, "") == "") {
                     showLoginDialog()
                     return true
                 }else{
@@ -176,7 +185,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         (nav_view.getHeaderView(0).spinnerDeviceIDs.adapter as DevicesSpinnerAdapter).clearDataList()
         nav_view.getHeaderView(0).name_user.text = "Please login"
         nav_view.getHeaderView(0).balance_user.text = ""
-        return customPrefs(this).edit().putString(AppConstants.SHARED_USER, "").commit()
+        return customPrefs(this).edit().putString(AppConstants.SHARED_COOKIES, "").commit()
     }
 
     private fun showLoginDialog() {
@@ -225,20 +234,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         when (item.itemId) {
             R.id.nav_home -> {
                 fragment = MapFragment.newInstance()
-                tag = "GoogleMap"
+                tag = TagsFragment.MAPS.name
             }
-            R.id.nav_battery -> {
-
-            }
-            R.id.nav_gsm -> {
-
-            }
-            R.id.nav_velocity -> {
-
+            R.id.nav_statistic -> {
+                fragment = ImageFragment.newInstance()
+                tag = TagsFragment.BATTERY.name
             }
             R.id.nav_filter -> {
                 fragment = FilterFragment.newInstance()
-                tag = "Filter"
+                tag = TagsFragment.FILTER.name
             }
         }
         if (fragment != null) {
@@ -249,10 +253,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onSharedPreferenceChanged(sh: SharedPreferences?, key: String?) {
-        if (key == AppConstants.SHARED_USER){
+        if (key == AppConstants.SHARED_COOKIES){
             if (sh?.getString(key,"") == "") {
                 mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_login)
-                sh.edit().putString(AppConstants.SHARED_PASSWORD, "").apply()
             }else{
                 mAccountMenu?.icon = ContextCompat.getDrawable(this, R.drawable.ic_action_no_login)
             }

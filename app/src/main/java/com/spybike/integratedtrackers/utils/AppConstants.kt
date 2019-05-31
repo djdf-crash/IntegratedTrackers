@@ -18,11 +18,14 @@ object AppConstants {
     const val TABLE_FILTER_LAST_CHANGE: String = "last_change"
 
     const val BASE_URL: String = "http://www.integratedtrackers.com/GPSTrack"
+    const val LOCATION_LIST_URL: String = "$BASE_URL/LocationsList"
+    const val BATTERY_URL: String = "$BASE_URL/Battery"
+    const val GSM_URL: String = "$BASE_URL/GSMSignal"
+    const val VELOCITY_URL: String = "$BASE_URL/Velocity"
     const val ACCOUNT_BALANCE_URL: String = "/api/get_account_balance"
     const val LOGIN_URL: String = "/api/login"
 
     const val SHARED_NAME: String = "app_shared"
-    const val SHARED_USER: String = "user_name"
-    const val SHARED_PASSWORD: String = "password"
+    const val SHARED_COOKIES: String = "cookies"
 
 }

@@ -1,14 +1,13 @@
 package com.spybike.integratedtrackers.models
 
 import com.google.android.gms.maps.model.LatLng
-import java.util.*
 
 data class PointMarkerModels (
     var id: String,
-    var date: Date,
+    var date: String,
     var time: String,
     var latLng: LatLng,
     var reason: String
 ) {
-    constructor(): this("", Date(), "", LatLng(0.0,0.0), "")
+    constructor(): this("", "", "", LatLng(0.0,0.0), "")
 }

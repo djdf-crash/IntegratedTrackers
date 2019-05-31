@@ -1,6 +1,8 @@
 package com.spybike.integratedtrackers.viewvmodel
 
 import android.content.Context
+import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -74,6 +76,18 @@ class MainViewModel : ViewModel() {
     fun applyFilter(ctx: Context?, selectFilter: FilterModel) {
         if (ctx != null) {
             AppDatabase.getAppDataBase(ctx)?.applyFilterDatabase(selectFilter)
+        }
+    }
+
+    fun loadImageByURL(view: ImageView, progressBar: ProgressBar, filter: FilterModel?, url: String){
+        if (filter != null) {
+            repo.getImageByFilter(view, progressBar, filter, url)
+        }
+    }
+
+    fun openImageByURL(imageSource: ImageView?, filter: FilterModel?, url: String) {
+        if (filter != null) {
+            repo.openImageByFilter(imageSource, filter, url)
         }
     }
 }

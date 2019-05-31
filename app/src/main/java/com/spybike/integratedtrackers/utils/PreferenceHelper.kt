@@ -8,8 +8,9 @@ object PreferenceHelper {
 
     var cookies: Map<String, String>? = null
 
-    fun initCookies(value: Map<String, String>?){
+    fun initCookies(ctx: Context, value: Map<String, String>?){
         cookies = value
+        customPrefs(ctx).edit().putString(AppConstants.SHARED_COOKIES, cookies?.get("JSESSIONID")).apply()
     }
 
     fun defaultPrefs(context: Context): SharedPreferences

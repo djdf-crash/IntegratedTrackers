@@ -9,17 +9,9 @@
                 android:icon="@drawable/ic_menu_map"
                 android:title="@string/menu_home"/>
         <item
-                android:id="@+id/nav_battery"
-                android:icon="@drawable/ic_menu_battery"
+                android:id="@+id/nav_statistic"
+                android:icon="@drawable/ic_menu_statistic"
                 android:title="@string/menu_battery"/>
-        <item
-                android:id="@+id/nav_gsm"
-                android:icon="@drawable/ic_menu_gsm"
-                android:title="@string/menu_gsm"/>
-        <item
-                android:id="@+id/nav_velocity"
-                android:icon="@drawable/ic_menu_velocity"
-                android:title="@string/menu_velocity"/>
         <item
                 android:id="@+id/nav_filter"
                 android:icon="@drawable/ic_menu_filter"
